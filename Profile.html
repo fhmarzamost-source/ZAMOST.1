@@ -6,19 +6,19 @@
 <title>My Portal | FHAMAR ZAMOST</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-html,body{
-  height:auto!important;
-  min-height:100%;
+html,body{height:100%;min-height:100%}
+body{
+  min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;
   overflow-x:hidden;
-  overflow-y:auto;
+  background:#050b12;color:#fff;
   -webkit-overflow-scrolling:touch;
-  background:#050b12;
-  color:#fff;
 }
 a{text-decoration:none;color:inherit}
+button{font-family:inherit}
 
 header{
-  height:60px;padding:0 4%;
+  flex-shrink:0;height:60px;padding:0 4%;
   display:flex;align-items:center;justify-content:space-between;
   background:#07111d;border-bottom:1px solid #30465d;
   position:sticky;top:0;z-index:1000;
@@ -33,19 +33,20 @@ header{
 .brand{font-size:15px;font-weight:900;letter-spacing:1.2px}
 .blue{color:#4da3ff}.silver{color:#aeb9c5}
 
-.header-actions{display:flex;align-items:center;gap:7px}
-.home-btn,.team-btn,.logout-btn{
+.header-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.home-btn,.team-btn,.admin-btn,.logout-btn{
   padding:7px 11px;border:1px solid #60768c;border-radius:7px;
   color:#dce5ee;background:transparent;font-size:10px;font-weight:700;cursor:pointer;
 }
 .home-btn:hover,.logout-btn:hover{border-color:#4da3ff;color:#4da3ff}
-.team-btn{display:none;border-color:#4da3ff;color:#4da3ff}
-.team-btn.show{display:inline-block}
+.team-btn,.admin-btn{display:none;border-color:#4da3ff;color:#4da3ff}
+.team-btn.show,.admin-btn.show{display:inline-block}
 
 .page{
+  flex:1 0 auto;
   max-width:1100px;
   margin:0 auto;
-  padding:28px 4% 110px;
+  padding:28px 4% 40px;
   width:100%;
 }
 
@@ -115,13 +116,18 @@ header{
   margin-top:20px;padding:13px;border:1px dashed #405a72;border-radius:9px;
   background:#06101a;color:#75899d;font-size:11px;line-height:1.6;text-align:center;
 }
-footer{padding:24px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d90a4;font-size:11px}
+footer{
+  flex-shrink:0;margin-top:auto;width:100%;
+  padding:28px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d90a4;font-size:12px;
+}
+footer .brand{font-size:16px;letter-spacing:1.5px}
+footer p{margin-top:6px}
+
 #authMessage{
   display:none;margin-top:12px;padding:10px;border-radius:8px;
   border:1px solid #6d4d4d;background:#1b1111;color:#ffb1b1;font-size:11px;text-align:center;
 }
 
-/* Profile Photo */
 .avatar-wrap{position:relative;width:64px;height:64px;flex:0 0 64px}
 .avatar{
   width:64px;height:64px;border-radius:16px;overflow:hidden;
@@ -148,7 +154,6 @@ footer{padding:24px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d
   border:1px solid #304b63;background:#071521;color:#8fa4b8;font-size:10px;
 }
 
-/* Team Application Form */
 .apply-section{margin-top:18px;padding:18px;border:1px solid #293f55;border-radius:12px;background:#081421}
 .apply-section h2{font-size:17px}
 .apply-section h2 span{color:#4da3ff}
@@ -180,12 +185,13 @@ footer{padding:24px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d
   .apply-row{grid-template-columns:1fr}
   .apply-field.full{grid-column:span 1}
   .title{font-size:26px}
-  .page{padding:22px 4% 120px}
+  .page{padding:22px 4% 32px}
+  header{padding:0 3%;height:auto;min-height:60px;flex-wrap:wrap;gap:8px;padding-top:10px;padding-bottom:10px}
 }
 </style>
 </head>
 <body>
-  
+
 <header>
   <div class="brand-area">
     <div class="fz-logo">FZ</div>
@@ -194,6 +200,7 @@ footer{padding:24px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d
   <div class="header-actions">
     <a href="home.html" class="home-btn">HOME</a>
     <a href="team.html" class="team-btn" id="teamBtn">TEAM</a>
+    <a href="admin.html" class="admin-btn" id="adminBtn">ADMIN</a>
     <button id="logoutButton" class="logout-btn" type="button">LOGOUT</button>
   </div>
 </header>
@@ -222,7 +229,7 @@ footer{padding:24px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d
     <div class="profile-right">
       <div class="account-status" id="accountStatus">CHECKING...</div>
       <button type="button" id="photoButton" class="photo-btn primary">ADD PROFILE PHOTO</button>
-      <div class="photo-note">📷 Phone gallery/camera se photo choose karein. Photo Firebase Storage aur aapke account profile mein save hogi.</div>
+      <div class="photo-note">📷 Phone gallery/camera se photo choose karein. Photo Firebase Storage aur account profile mein save hogi.</div>
     </div>
   </section>
 
@@ -251,7 +258,7 @@ footer{padding:24px 4%;background:#03080e;border-top:1px solid #263b50;color:#7d
     </div>
     <div class="vote-card">
       <div class="vote-question">Which area should FHAMAR.ZAMOST focus on next?</div>
-      <p class="vote-description">Select one option and submit your vote. Firebase records one vote per signed-in account.</p>
+      <p class="vote-description">Select one option and submit your vote. One vote per signed-in account.</p>
       <div class="vote-options">
         <label class="vote-option"><input type="radio" name="vote" value="products"><span>New Product Collection</span></label>
         <label class="vote-option"><input type="radio" name="vote" value="team"><span>More State Team Members</span></label>
@@ -340,7 +347,7 @@ function showAuthMessage(text){
   box.style.display = "block";
 }
 
-function showPhotoMessage(text, error=false){
+function showPhotoMessage(text, error){
   const box = $("photoMessage");
   box.textContent = text;
   box.style.display = "block";
@@ -348,7 +355,7 @@ function showPhotoMessage(text, error=false){
   box.style.color = error ? "#ffb1b1" : "#8fa4b8";
 }
 
-function showApplyMessage(text, error=false){
+function showApplyMessage(text, error){
   const box = $("applyMessage");
   box.textContent = text;
   box.style.display = "block";
@@ -356,35 +363,32 @@ function showApplyMessage(text, error=false){
   box.style.color = error ? "#ffb1b1" : "#91a5b8";
 }
 
-function setAvatarPhoto(url, name=""){
+function setAvatarPhoto(url, name){
   const img = $("profilePhoto");
   const initials = $("avatarInitials");
   if(url){
     img.src = url;
     img.style.display = "block";
     initials.style.display = "none";
-  }else{
+  } else {
     img.removeAttribute("src");
     img.style.display = "none";
-    initials.textContent = (name.trim().charAt(0) || "F").toUpperCase();
+    initials.textContent = ((name || "F").trim().charAt(0) || "F").toUpperCase();
     initials.style.display = "block";
   }
 }
 
 function isApprovedTeam(data){
-  const role = String(data?.role || "").toLowerCase().replace(/[\s-]/g,"_");
+  const role = String(data?.role || "").toLowerCase().replace(/[\s-]/g, "_");
   const status = String(data?.status || "").toLowerCase();
-  if(role === "admin") return true;
-  const teamRole = ["team_member","teammember","team"].includes(role);
-  const approved = data?.approved === true || ["approved","verified","active"].includes(status);
+  if(role === "admin" || data?.adminAccess === true) return true;
+  const teamRole = ["team_member", "teammember", "team"].indexOf(role) !== -1;
+  const approved = data?.approved === true || ["approved", "verified", "active"].indexOf(status) !== -1;
   return teamRole && approved;
 }
 
-function showTeamButton(){
-  $("teamBtn").classList.add("show");
-}
-
-function setProfile(user, data = {}){
+function setProfile(user, data){
+  data = data || {};
   const name = data.name || data.fullName || user.displayName || "FHAMAR User";
   const email = user.email || data.email || "Login account";
 
@@ -399,20 +403,33 @@ function setProfile(user, data = {}){
   $("applyName").value = name !== "FHAMAR User" ? name : "";
   $("applyEmail").value = email !== "Login account" ? email : "";
 
-  if(data.status || data.role === "admin" || data.adminAccess === true){
-    $("memberStatus").textContent = data.status === "approved" || data.role === "admin" ? "Approved" : "Pending Review";
-    $("memberState").textContent = data.state || "—";
-    $("applicationStatus").textContent = (data.status === "approved" || data.role === "admin") ? "Approved by Admin" : "Submitted • Admin Review";
-    $("applySection").style.display = "none";
+  const isAdmin = data.role === "admin" || data.adminAccess === true;
+  const approved = data.status === "approved" || isAdmin;
 
-    if(isApprovedTeam(data) || data.role === "admin" || data.adminAccess === true){
-      showTeamButton();
-    }
-  }else{
+  if(data.status || isAdmin){
+    $("memberStatus").textContent = approved ? "Approved" : "Pending Review";
+    $("memberStatus").className = approved ? "" : "pending";
+    $("memberState").textContent = data.state || "—";
+    $("applicationStatus").textContent = approved ? "Approved by Admin" : "Submitted • Admin Review";
+    $("applySection").style.display = "none";
+  } else {
     $("memberStatus").textContent = "Not Registered";
+    $("memberStatus").className = "pending";
     $("memberState").textContent = "—";
     $("applicationStatus").textContent = "Not Applied";
     $("applySection").style.display = "block";
+  }
+
+  if(isApprovedTeam(data) || isAdmin){
+    $("teamBtn").classList.add("show");
+  } else {
+    $("teamBtn").classList.remove("show");
+  }
+
+  if(isAdmin){
+    $("adminBtn").classList.add("show");
+  } else {
+    $("adminBtn").classList.remove("show");
   }
 }
 
@@ -453,19 +470,20 @@ $("applyButton").addEventListener("click", async () => {
 
   try{
     await setDoc(doc(db, "teamApplications", currentUser.uid), {
-      name, mobile, email, city, state,
+      name: name, mobile: mobile, email: email, city: city, state: state,
       status: "pending",
-      appliedAt: new Date()
+      appliedAt: new Date().toISOString()
     }, { merge: true });
 
     await setDoc(doc(db, "users", currentUser.uid), {
       role: "team_member",
-      name, mobile, city, state,
+      name: name, mobile: mobile, city: city, state: state,
       status: "pending",
-      updatedAt: new Date()
+      updatedAt: new Date().toISOString()
     }, { merge: true });
 
-    $("memberStatus").textContent = "Pending Review";
+     $("memberStatus").textContent = "Pending Review";
+    $("memberStatus").className = "pending";
     $("memberState").textContent = state;
     $("applicationStatus").textContent = "Submitted • Admin Review";
     $("applySection").style.display = "none";
@@ -499,11 +517,15 @@ async function saveProfilePhoto(file){
 
   try{
     const extension = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const photoRef = ref(storage, `profilePhotos/\( {currentUser.uid}/profile. \){extension}`);
+    const path = "profilePhotos/" + currentUser.uid + "/profile." + extension;
+    const photoRef = ref(storage, path);
     await uploadBytes(photoRef, file, { contentType: file.type });
     const photoURL = await getDownloadURL(photoRef);
-    await updateProfile(currentUser, { photoURL });
-    await setDoc(doc(db, "users", currentUser.uid), { photoURL, updatedAt: new Date() }, { merge: true });
+    await updateProfile(currentUser, { photoURL: photoURL });
+    await setDoc(doc(db, "users", currentUser.uid), {
+      photoURL: photoURL,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
     setAvatarPhoto(photoURL, $("profileName").textContent);
     $("photoButton").textContent = "CHANGE PHOTO";
     showPhotoMessage("✓ Profile photo saved successfully.");
@@ -517,14 +539,14 @@ async function saveProfilePhoto(file){
   }
 }
 
-$("photoEditButton").addEventListener("click", () => $("photoInput").click());
-$("photoButton").addEventListener("click", () => $("photoInput").click());
-$("photoInput").addEventListener("change", (e) => {
-  const file = e.target.files?.[0];
+$("photoEditButton").addEventListener("click", function(){ $("photoInput").click(); });
+$("photoButton").addEventListener("click", function(){ $("photoInput").click(); });
+$("photoInput").addEventListener("change", function(e){
+  const file = e.target.files && e.target.files[0];
   if(file) saveProfilePhoto(file);
 });
 
-$("logoutButton").addEventListener("click", async()=>{
+$("logoutButton").addEventListener("click", async function(){
   const button = $("logoutButton");
   button.disabled = true;
   button.textContent = "LOGGING OUT...";
@@ -552,10 +574,10 @@ async function restoreVoteState(uid){
       message.style.display = "block";
       message.textContent = "✓ Your vote has already been recorded for this account.";
       if(data.option){
-        const radio = document.querySelector(`input[name="vote"][value="${CSS.escape(data.option)}"]`);
+        const radio = document.querySelector('input[name="vote"][value="' + data.option + '"]');
         if(radio) radio.checked = true;
       }
-    }else{
+    } else {
       button.disabled = false;
       status.textContent = "VOTE AVAILABLE";
     }
@@ -585,7 +607,7 @@ async function submitVote(){
   try{
     await setDoc(doc(db, "votes", currentUser.uid), {
       option: selected.value,
-      votedAt: new Date(),
+      votedAt: new Date().toISOString(),
       userEmail: currentUser.email || ""
     }, { merge: true });
     status.textContent = "VOTE SUBMITTED";
@@ -601,7 +623,7 @@ async function submitVote(){
 
 $("voteButton").addEventListener("click", submitVote);
 
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth, async function(user){
   if(!user){
     $("profileName").textContent = "Sign In Required";
     $("profileEmail").textContent = "Please sign in to open your portal.";
@@ -612,7 +634,7 @@ onAuthStateChanged(auth, async(user)=>{
     $("photoEditButton").disabled = true;
     $("applyButton").disabled = true;
     showAuthMessage("You are not signed in. Redirecting to the login page...");
-    setTimeout(() => window.location.replace("index.html"), 700);
+    setTimeout(function(){ window.location.replace("index.html"); }, 700);
     return;
   }
   currentUser = user;
