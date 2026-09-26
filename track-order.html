@@ -157,7 +157,7 @@ footer{
   <h1 class="title">Track Your <span>Orders</span></h1>
   <p class="subtitle">Order number se track karein, ya sign in karke apni order history dekhein.</p>
 
-  <!-- 1. ORDER DETAIL -->
+  <!-- 1. ORDER DETAIL (shows at top, like Flipkart/Amazon, once an order is opened) -->
   <section id="result" class="result">
     <div class="result-order-id" id="resultOrderId">Order #—</div>
     <div class="result-status-title" id="resultStatusTitle">—</div>
@@ -200,7 +200,7 @@ footer{
   <!-- Auth loading -->
   <div class="auth-loading" id="authLoading">Checking login...</div>
 
-  <!-- 3. MY ORDERS -->
+  <!-- 3. MY ORDERS (all previous orders the customer has placed) -->
   <section class="orders-section" id="ordersSection" style="display:none">
     <h2>My Order History</h2>
     <div id="ordersLoading">Loading your orders...</div>
@@ -328,7 +328,7 @@ function renderOrder(orderNumber, data){
     $("productList").innerHTML = items.map(item => {
       const qty = Math.max(1, Number(item.quantity) || 1);
       const price = Math.max(0, Number(item.price) || 0);
-      return `<div class="product-row"><span>${escapeHTML(item.name || "Product")} × \( {qty}</span><strong> \){formatMoney(price * qty)}</strong></div>`;
+      return `<div class="product-row"><span>${escapeHTML(item.name || "Product")} × ${qty}</span><strong>${formatMoney(price * qty)}</strong></div>`;
     }).join("");
   }
   $("orderTotalLine").textContent = "Total: " + formatMoney(data.total);
@@ -452,7 +452,7 @@ async function loadMyOrders(uid){
           <div class="order-card-title">${title}</div>
           <div class="order-card-sub">Order #${num} • ${formatMoney(order.total)}</div>
         </div>
-        <div class="order-badge \( {badgeClass(order.status)}"> \){badgeLabel(order.status)}</div>
+        <div class="order-badge ${badgeClass(order.status)}">${badgeLabel(order.status)}</div>
       </div>`;
     }).join("");
 
@@ -471,7 +471,7 @@ async function loadMyOrders(uid){
   }
 }
 
-\( ("trackButton").onclick = () => trackOrder( \)("orderNumberInput").value);
+$("trackButton").onclick = () => trackOrder($("orderNumberInput").value);
 $("orderNumberInput").addEventListener("keydown", e => {
   if(e.key === "Enter") trackOrder($("orderNumberInput").value);
 });
