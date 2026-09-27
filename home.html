@@ -649,18 +649,18 @@ onSnapshot(collection(db, "products"), function(snapshot){
   renderFeaturedProducts([]);
 });
 
+/* ===== UPDATED: reads the small PUBLIC teamStates collection instead of
+   the full users collection, so this now works correctly for every
+   visitor (logged in or not, customer or team) — not just Admin. ===== */
 async function lightUpActiveStates(){
   try{
-    var snap = await getDocs(collection(db, "users"));
+    var snap = await getDocs(collection(db, "teamStates"));
     var activeStates = {};
     snap.forEach(function(docSnap){
       var data = docSnap.data();
-      var state = data.state || data.userState || data.memberState;
-      var role = String(data.role || "").toLowerCase();
-      var status = String(data.status || "").toLowerCase();
-      var approved = (role === "team_member" || role === "admin") &&
-                     (status === "approved" || status === "active" || role === "admin");
-      if(state && approved) activeStates[String(state).trim().toLowerCase()] = true;
+      if(data && data.occupied){
+        activeStates[docSnap.id.trim().toLowerCase()] = true;
+      }
     });
     var items = document.querySelectorAll(".state-item[data-state]");
     for(var i = 0; i < items.length; i++){
