@@ -563,7 +563,7 @@ function renderFeaturedProducts(liveProducts){
         id: p.id,
         name: p.name || "",
         description: p.description || "",
-        price: p.price || 0,
+        price: Number(p.price) || 0,
         image: p.image || (p.images && p.images[0]) || ""
       });
     }
@@ -588,29 +588,49 @@ function renderFeaturedProducts(liveProducts){
       '<div class="price">₹' + Number(prod.price).toLocaleString("en-IN") + '</div>' +
       '<div class="product-actions">' +
         '<a href="product-details.html?id=' + encodeURIComponent(prod.id) + '" class="btn-view">BUY NOW</a>' +
-        '<button class="btn-cart" type="button" data-product-id="' + escapeHTML(prod.id) + '" data-product-name="' + escapeHTML(prod.name) + '">ADD CART</button>' +
+        '<button class="btn-cart" type="button" ' +
+          'data-product-id="' + escapeHTML(prod.id) + '" ' +
+          'data-product-name="' + escapeHTML(prod.name) + '" ' +
+          'data-product-price="' + (Number(prod.price) || 0) + '" ' +
+          'data-product-image="' + escapeHTML(prod.image || '') + '">ADD CART</button>' +
       '</div>' +
     '</div>';
   }
   grid.innerHTML = html;
 
+  // Add to Cart – ab price + image bhi save hoga
   var cartButtons = grid.querySelectorAll(".btn-cart");
   for(var k = 0; k < cartButtons.length; k++){
     cartButtons[k].addEventListener("click", function(){
       var id = this.getAttribute("data-product-id");
       var name = this.getAttribute("data-product-name") || "Product";
+      var price = Number(this.getAttribute("data-product-price")) || 0;
+      var image = this.getAttribute("data-product-image") || "";
+
       var cart = [];
       try{ cart = JSON.parse(localStorage.getItem("fz_cart") || "[]"); }catch(e){ cart = []; }
       if(!Array.isArray(cart)) cart = [];
+
       var found = false;
       for(var x = 0; x < cart.length; x++){
         if(String(cart[x].id) === String(id)){
           cart[x].quantity = Number(cart[x].quantity || cart[x].qty || 1) + 1;
+          cart[x].price = price;
+          cart[x].image = image || cart[x].image || "";
           found = true;
           break;
         }
       }
-      if(!found) cart.push({ id: id, name: name, quantity: 1, qty: 1 });
+      if(!found){
+        cart.push({
+          id: id,
+          name: name,
+          price: price,
+          image: image,
+          quantity: 1,
+          qty: 1
+        });
+      }
       localStorage.setItem("fz_cart", JSON.stringify(cart));
       showToast("Added to cart");
     });
