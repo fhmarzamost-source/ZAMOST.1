@@ -237,9 +237,9 @@ function renderProducts(){
   noResults.style.display = "none";
 
   grid.innerHTML = filtered.map(p => {
-    const imgHtml = p.image
-      ? `<img src="\( {escapeHtml(p.image)}" alt=" \){escapeHtml(p.name)}" onerror="this.remove()">`
-      : ""; /* no demo emoji / no fake photo */
+const imgHtml = p.image
+  ? `<img src="\( {escapeHtml(p.image)}" alt=" \){escapeHtml(p.name)}" onerror="this.remove()">`
+  : "";/* no demo emoji / no fake photo */
 
     return `
     <article class="product">
