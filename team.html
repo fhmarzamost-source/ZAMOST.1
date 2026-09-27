@@ -79,6 +79,21 @@ header{
 .page-title span{color:#4da3ff}
 .subtitle{margin-top:6px;color:#8194a8;font-size:13px;line-height:1.6}
 
+/* Stylish "Upload New Product" call-to-action */
+.upload-cta{
+  margin-top:18px;display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;
+  background:linear-gradient(120deg,#1e5fae,#123659 60%,#0a1a2b);border:1px solid #3d7ab8;
+  box-shadow:0 10px 26px rgba(30,95,174,.28);transition:.2s
+}
+.upload-cta:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(30,95,174,.4)}
+.upload-cta-icon{
+  width:42px;height:42px;flex-shrink:0;border-radius:11px;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:19px
+}
+.upload-cta strong{display:block;font-size:14px;color:#fff}
+.upload-cta small{display:block;margin-top:2px;color:#cfe2f7;font-size:11px}
+.upload-cta-arrow{margin-left:auto;font-size:18px;color:#cfe2f7}
+
 .member-profile{
   margin-top:20px;padding:18px;border:1px solid #344d64;border-radius:14px;background:#091622;
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap
@@ -240,6 +255,15 @@ footer{padding:28px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
   <div class="eyebrow">FHAMAR.ZAMOST TEAM OPERATIONS</div>
   <h1 class="page-title">Team <span>Dashboard</span></h1>
   <p class="subtitle">Manage assigned state orders, packaging, dispatch and delivery.</p>
+
+  <a href="Product-upload.html" class="upload-cta">
+    <span class="upload-cta-icon">🆕</span>
+    <span>
+      <strong>Upload New Product</strong>
+      <small>Add a fresh item to the shop catalog</small>
+    </span>
+    <span class="upload-cta-arrow">→</span>
+  </a>
 
   <section class="member-profile">
     <div class="member-left">
@@ -491,8 +515,7 @@ async function loadTeamMembers(){
     });
   }catch(e){ console.error(e); }
 }
-
-function renderAdsList(ads){
+  function renderAdsList(ads){
   var list = document.getElementById("adsList");
   var empty = document.getElementById("adsEmpty");
 
@@ -796,86 +819,73 @@ window.assignDelivery = function(){
   if(!partner){ showToast("Partner select karein."); return; }
   const data = { partner, memberId: TEAM_MEMBER_ID, state: TEAM_STATE, assignedAt: new Date().toISOString() };
   localStorage.setItem("fz_delivery_assignment", JSON.stringify(data));
-  document.getElementById("deliveryResult").innerHTML =
-    "<b>ASSIGNED:</b> " + escapeHTML(partner) + "<br>State: " + escapeHTML(TEAM_STATE) +
-    "<br>Member: " + escapeHTML(currentUserName);
+  document.getElementById("deliveryResult").innerHTML = "Assigned Partner: <b>" + escapeHTML(partner) + "</b>";
   showToast("Delivery partner assigned.");
 };
 
 window.addCustomPartner = function(){
-  const name = document.getElementById("customPartner").value.trim();
-  if(!name){ showToast("Partner name likhein."); return; }
+  const input = document.getElementById("customPartner");
+  const val = (input.value || "").trim();
+  if(!val){ showToast("Partner name likhein."); return; }
   const sel = document.getElementById("deliveryPartner");
   const opt = document.createElement("option");
-  opt.value = name;
-  opt.textContent = name;
+  opt.textContent = val;
   sel.appendChild(opt);
-  sel.value = name;
-  document.getElementById("customPartner").value = "";
-  showToast("Partner list mein add. Ab ASSIGN dabayein.");
+  sel.value = val;
+  input.value = "";
+  showToast("Partner added to list.");
 };
 
 function loadSavedDelivery(){
   try{
-    const raw = localStorage.getItem("fz_delivery_assignment");
-    if(!raw) return;
-    const data = JSON.parse(raw);
-    if(data.state === TEAM_STATE){
-      document.getElementById("deliveryResult").innerHTML =
-        "<b>ASSIGNED:</b> " + escapeHTML(data.partner || "") +
-        "<br>State: " + escapeHTML(data.state || "") + "<br>Saved earlier";
+    const saved = JSON.parse(localStorage.getItem("fz_delivery_assignment") || "null");
+    if(saved && saved.partner){
+      document.getElementById("deliveryResult").innerHTML = "Assigned Partner: <b>" + escapeHTML(saved.partner) + "</b>";
     }
   }catch(e){}
 }
 
-window.updateStats = function(){
-  const mine = orders.filter(o => o.state === TEAM_STATE);
-  const count = s => mine.filter(o => o.status === s).length;
-  document.getElementById("todayOrders").textContent = mine.length;
-  document.getElementById("pendingOrders").textContent = count("Confirmed");
-  document.getElementById("packagingOrders").textContent = count("Packaging");
-  document.getElementById("shippedOrders").textContent =
-    count("Shipped") + count("Ready to Ship") + count("Out for Delivery");
-  document.getElementById("deliveredOrders").textContent = count("Delivered");
-};
+function updateStats(){
+  const today = new Date().toDateString();
+  const isToday = (o) => {
+    const t = o.createdAt?.seconds ? new Date(o.createdAt.seconds*1000) : (o.createdAt ? new Date(o.createdAt) : null);
+    return t && t.toDateString() === today;
+  };
+  document.getElementById("todayOrders").textContent = orders.filter(isToday).length;
+  document.getElementById("pendingOrders").textContent = orders.filter(o=>o.status==="Confirmed").length;
+  document.getElementById("packagingOrders").textContent = orders.filter(o=>o.status==="Packaging" || o.status==="Ready to Ship").length;
+  document.getElementById("shippedOrders").textContent = orders.filter(o=>o.status==="Shipped" || o.status==="Out for Delivery").length;
+  document.getElementById("deliveredOrders").textContent = orders.filter(o=>o.status==="Delivered").length;
+}
 
-window.showSection = function(id, button){
+window.showSection = function(id, btn){
   document.querySelectorAll(".section").forEach(s => s.style.display = "none");
+  document.getElementById(id).style.display = "block";
   document.querySelectorAll(".drawer-item").forEach(b => b.classList.remove("active"));
-  const section = document.getElementById(id);
-  if(section) section.style.display = "block";
-  if(button) button.classList.add("active");
-  if(id === "orders") renderOrders();
+  if(btn) btn.classList.add("active");
   closeDrawer();
 };
 
-function openDrawer(){
-  document.getElementById("drawer").classList.add("show");
-  document.getElementById("drawerOverlay").classList.add("show");
-}
-function closeDrawer(){
-  document.getElementById("drawer").classList.remove("show");
-  document.getElementById("drawerOverlay").classList.remove("show");
-}
-
-document.getElementById("hamburgerBtn").addEventListener("click", openDrawer);
-document.getElementById("drawerClose").addEventListener("click", closeDrawer);
-document.getElementById("drawerOverlay").addEventListener("click", closeDrawer);
-
 function escapeHTML(value){
-  return String(value ?? "").replace(/[&<>"']/g, c =>
-    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c])
-  );
+  return String(value ?? "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 }
 
-window.showToast = function(text){
+function showToast(text){
   const t = document.getElementById("toast");
   t.textContent = text;
   t.classList.add("show");
-  clearTimeout(window.toastTimer);
-  window.toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
-};
+  setTimeout(()=> t.classList.remove("show"), 2500);
+}
+
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const drawer = document.getElementById("drawer");
+const drawerOverlay = document.getElementById("drawerOverlay");
+const drawerClose = document.getElementById("drawerClose");
+function openDrawer(){ drawer.classList.add("show"); drawerOverlay.classList.add("show"); }
+function closeDrawer(){ drawer.classList.remove("show"); drawerOverlay.classList.remove("show"); }
+hamburgerBtn.addEventListener("click", openDrawer);
+drawerClose.addEventListener("click", closeDrawer);
+drawerOverlay.addEventListener("click", closeDrawer);
 </script>
 </body>
 </html>
-  
