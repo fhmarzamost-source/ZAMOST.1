@@ -33,6 +33,21 @@ header{height:64px;padding:0 4%;display:flex;align-items:center;justify-content:
 .page-title span{color:#4da3ff}
 .subtitle{margin-top:6px;color:#8194a8;font-size:13px;line-height:1.6}
 
+/* Stylish "Upload New Product" call-to-action */
+.upload-cta{
+  margin-top:14px;display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;
+  background:linear-gradient(120deg,#1e5fae,#123659 60%,#0a1a2b);border:1px solid #3d7ab8;
+  box-shadow:0 10px 26px rgba(30,95,174,.28);transition:.2s
+}
+.upload-cta:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(30,95,174,.4)}
+.upload-cta-icon{
+  width:42px;height:42px;flex-shrink:0;border-radius:11px;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:19px
+}
+.upload-cta strong{display:block;font-size:14px;color:#fff}
+.upload-cta small{display:block;margin-top:2px;color:#cfe2f7;font-size:11px}
+.upload-cta-arrow{margin-left:auto;font-size:18px;color:#cfe2f7}
+
 .stats{margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .stat{padding:14px;border:1px solid #293f55;border-radius:12px;background:#081421}
 .stat small{color:#71869c;font-size:9px}
@@ -103,6 +118,34 @@ td strong{color:#dce5ed}
 .payment-field input,.payment-field select{width:100%;height:42px;padding:0 11px;border-radius:8px;border:1px solid #30465c;background:#050c14;color:#fff;outline:none;font-size:12px}
 .secret-note{margin-top:6px;color:#71869c;font-size:10px;line-height:1.5}
 
+.ads-form{display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:stretch}
+.ads-form select,.ads-form input{
+  height:44px;padding:0 12px;background:#050c14;border:1px solid #30465c;border-radius:8px;
+  color:#fff;outline:none;font-size:12px;width:100%;min-width:0
+}
+.ads-form input:focus,.ads-form select:focus{border-color:#4da3ff}
+.ads-form button{
+  height:44px;padding:0 18px;border:none;border-radius:8px;background:#4da3ff;
+  color:#04101c;font-weight:900;font-size:11px;white-space:nowrap
+}
+.ads-list{margin-top:16px;display:grid;gap:10px}
+.ad-item{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding:14px;border:1px solid #293f55;border-radius:11px;background:#07111d;min-width:0
+}
+.ad-item-body{flex:1;min-width:0;overflow:hidden}
+.ad-item-type{
+  display:inline-block;padding:3px 8px;border-radius:6px;background:#102a40;
+  border:1px solid #385b77;color:#4da3ff;font-size:9px;font-weight:bold;margin-bottom:6px
+}
+.ad-item-text{font-size:12px;color:#dce5ed;word-break:break-all;overflow-wrap:anywhere;line-height:1.45}
+.ad-item-meta{color:#71869c;font-size:10px;margin-top:6px}
+.ad-delete{
+  padding:8px 12px;border:1px solid #6d4d4d;border-radius:7px;background:#1b1111;
+  color:#ffb1b1;font-size:10px;font-weight:bold;flex-shrink:0
+}
+.ad-delete:hover{background:#2a1616}
+
 .api-note{margin-top:14px;padding:13px;border:1px dashed #405a72;border-radius:10px;background:#06101a;color:#74899d;text-align:center;font-size:11px;line-height:1.65}
 .toast{position:fixed;right:16px;bottom:16px;z-index:3000;display:none;max-width:300px;padding:12px 14px;border:1px solid #3b566e;border-radius:10px;background:#0b1b2a;color:#dce5ed;font-size:12px}
 .empty{padding:28px;text-align:center;color:#71869c;font-size:12px}
@@ -140,6 +183,10 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
   .page-title{font-size:24px}
   .delivery-grid,.payment-grid{grid-template-columns:1fr}
   .payment-field.full{grid-column:auto}
+  .ads-form{grid-template-columns:1fr}
+  .ads-form button{width:100%}
+  .ad-item{flex-direction:column}
+  .ad-delete{align-self:flex-end}
 }
 </style>
 </head>
@@ -171,6 +218,7 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
     <button type="button" class="menu-btn" data-section="team">👥 Team Members</button>
     <button type="button" class="menu-btn" data-section="orders">📦 State Orders</button>
     <button type="button" class="menu-btn" data-section="delivery">🚚 Delivery Partners</button>
+    <button type="button" class="menu-btn" data-section="ads">🖼️ Manage Ads</button>
     <button type="button" class="menu-btn" data-section="voting">🗳️ Voting Results</button>
     <button type="button" class="menu-btn" data-section="payments">💳 Payment Settings</button>
     <div class="menu-divider">SHORTCUTS</div>
@@ -184,6 +232,15 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
     <h1 class="page-title">Admin <span>Dashboard</span></h1>
     <p class="subtitle">Team, orders, labels, delete, delivery, voting & payments.</p>
 
+    <a href="Product-upload.html" class="upload-cta">
+      <span class="upload-cta-icon">🆕</span>
+      <span>
+        <strong>Upload New Product</strong>
+        <small>Add a fresh item to the shop catalog</small>
+      </span>
+      <span class="upload-cta-arrow">→</span>
+    </a>
+
     <div class="stats">
       <div class="stat blue-stat"><small>TEAM MEMBERS</small><strong id="teamCount">0</strong></div>
       <div class="stat"><small>ACTIVE ORDERS</small><strong id="orderCount">0</strong></div>
@@ -195,7 +252,7 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
       <div class="section-header"><h2>Dashboard Overview</h2></div>
       <div class="panel">
         <p style="color:#899caf;font-size:13px;line-height:1.75">
-          Admin Desk se team, orders (no-team states highlighted), PDF/JPG labels, <b>order delete</b>, delivery partners, voting aur payment settings manage karo.<br><br>
+          Admin Desk se team, orders (no-team states highlighted), PDF/JPG labels, <b>order delete</b>, delivery partners, ads, voting aur payment settings manage karo.<br><br>
           Order delete Admin se hote hi team.html se bhi real-time hat jata hai.
         </p>
       </div>
@@ -256,6 +313,27 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
       </div>
     </section>
 
+    <section id="ads" class="section">
+      <div class="section-header"><h2>Manage Home Page Ads</h2></div>
+      <div class="panel">
+        <div class="api-note" style="margin-top:0;margin-bottom:14px">
+          Ads Home page ke <b>Featured Advertisement</b> mein auto rotate hote hain.<br>
+          Type: Text / Image URL / Video URL (direct .mp4 link best) — YouTube/Instagram/Facebook link bhi chalega.
+        </div>
+        <div class="ads-form">
+          <select id="adType">
+            <option value="text">Text</option>
+            <option value="image">Image URL</option>
+            <option value="video">Video URL</option>
+          </select>
+          <input id="adContent" type="text" placeholder="Ad text ya image/video URL paste karein...">
+          <button type="button" id="addAdBtn" onclick="addAd()">ADD AD</button>
+        </div>
+        <div id="adsList" class="ads-list"></div>
+        <div id="adsEmpty" class="empty">No ads added yet. Upar form se pehla ad add karein.</div>
+      </div>
+    </section>
+
     <section id="voting" class="section">
       <div class="section-header">
         <h2>Voting Results</h2>
@@ -266,8 +344,7 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
         <div id="voteResults" class="vote-result"></div>
       </div>
     </section>
-
-    <section id="payments" class="section">
+      <section id="payments" class="section">
       <div class="section-header"><h2>Payment Settings</h2></div>
       <div class="panel">
         <div class="payment-warning"><b>RAZORPAY SECURITY</b><br>Key Secret frontend mein mat rakho. Sirf public Key ID.</div>
@@ -319,7 +396,7 @@ import { app } from "./firebase-config.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, setDoc, deleteDoc, addDoc,
-  onSnapshot, query, where
+  onSnapshot, query, where, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const auth = getAuth(app);
@@ -333,6 +410,10 @@ let orders = [];
 let deliveryPartners = [];
 let votes = [];
 let statesWithTeam = {};
+let lastSyncedStates = {};
+let adsUnsubscribe = null;
+let ADMIN_UID = "";
+let ADMIN_NAME = "Admin";
 
 function $(id){ return document.getElementById(id); }
 function esc(v){
@@ -340,6 +421,7 @@ function esc(v){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c];
   });
 }
+
 function toast(msg){
   var t = $("toast");
   if(!t) return;
@@ -384,6 +466,9 @@ onAuthStateChanged(auth, async function(user){
     var isAdmin = (data.role === "admin") || (data.adminAccess === true);
     if(!isAdmin){ showBlocked(); return; }
 
+    ADMIN_UID = user.uid;
+    ADMIN_NAME = data.name || user.displayName || (user.email ? user.email.split("@")[0] : "Admin");
+
     $("roleBadge").textContent = data.role === "admin" ? "ADMINISTRATOR" : "ADMIN ACCESS";
     showMain();
 
@@ -393,6 +478,7 @@ onAuthStateChanged(auth, async function(user){
     listenOrders();
     listenDeliveryPartners();
     listenVotes();
+    initAdsListener();
     loadPaymentSettings();
   }catch(err){
     console.error(err);
@@ -433,10 +519,31 @@ function rebuildStatesWithTeam(){
       statesWithTeam[String(m.state).trim().toLowerCase()] = true;
     }
   });
+  syncTeamStates();
 }
 function hasTeamInState(state){
   if(!state) return false;
   return !!statesWithTeam[String(state).trim().toLowerCase()];
+}
+
+/* ===== PUBLIC teamStates SYNC =====
+   Keeps a small public /teamStates/{state} doc ({occupied:true/false}) in
+   sync with the real team-member list, whenever it changes. Home page
+   (and any other logged-out page) reads ONLY this collection to light up
+   the state dot — never the private users collection — so it now works
+   correctly for every visitor, not just Admin. Only Admin can write here
+   (see firestore.rules), and writes only fire for states whose status
+   actually changed, to avoid unnecessary writes. */
+async function syncTeamStates(){
+  try{
+    for(var i = 0; i < STATES.length; i++){
+      var key = STATES[i];
+      var occupied = !!statesWithTeam[key.trim().toLowerCase()];
+      if(lastSyncedStates[key] === occupied) continue;
+      await setDoc(doc(db, "teamStates", key), { occupied: occupied }, { merge: true });
+      lastSyncedStates[key] = occupied;
+    }
+  }catch(e){ console.warn("teamStates sync failed", e); }
 }
 
 /* ===== PENDING ===== */
@@ -570,6 +677,119 @@ window.removeMember = async function(uid){
     await setDoc(doc(db, "users", uid), { role: "customer", status: "removed", adminAccess: false }, { merge: true });
     toast("Removed.");
   }catch(e){ console.error(e); toast("Failed."); }
+};
+  /* ===== ADS (same feature as Team Dashboard, now also here) ===== */
+function initAdsListener(){
+  try{
+    if(adsUnsubscribe) adsUnsubscribe();
+    adsUnsubscribe = onSnapshot(collection(db, "ads"), function(snapshot){
+      var ads = [];
+      snapshot.forEach(function(d){
+        var data = d.data();
+        data.id = d.id;
+        ads.push(data);
+      });
+      ads.sort(function(a, b){
+        var ta = (a.createdAt && a.createdAt.seconds) ? a.createdAt.seconds : 0;
+        var tb = (b.createdAt && b.createdAt.seconds) ? b.createdAt.seconds : 0;
+        return ta - tb;
+      });
+      renderAdsList(ads);
+    }, function(e){
+      console.warn(e);
+      if($("adsEmpty")){ $("adsEmpty").style.display = "block"; $("adsEmpty").textContent = "Ads load nahi ho paye."; }
+      if($("adsList")) $("adsList").innerHTML = "";
+    });
+  }catch(e){ console.error(e); }
+}
+
+function renderAdsList(ads){
+  var list = $("adsList");
+  var empty = $("adsEmpty");
+  if(!list) return;
+  if(!ads || !ads.length){
+    list.innerHTML = "";
+    if(empty){ empty.style.display = "block"; empty.textContent = "No ads added yet. Upar form se pehla ad add karein."; }
+    return;
+  }
+  if(empty) empty.style.display = "none";
+  var html = "";
+  for(var i = 0; i < ads.length; i++){
+    var ad = ads[i];
+    var typeLabel = String(ad.type || "text").toUpperCase();
+    var content = ad.content || "";
+    var isUrl = content.indexOf("http") === 0;
+    html += '<div class="ad-item">' +
+      '<div class="ad-item-body">' +
+        '<span class="ad-item-type">' + esc(typeLabel) + '</span>' +
+        '<div class="ad-item-text">' +
+          (isUrl
+            ? '<a href="' + esc(content) + '" target="_blank" rel="noopener" style="color:#4da3ff">' + esc(content) + '</a>'
+            : esc(content)) +
+        '</div>' +
+        '<div class="ad-item-meta">Added by ' + esc(ad.createdByName || "Team Member") + '</div>' +
+      '</div>' +
+      '<button type="button" class="ad-delete" data-ad-id="' + esc(ad.id) + '">DELETE</button>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+  list.querySelectorAll(".ad-delete").forEach(function(btn){
+    btn.onclick = function(){
+      var id = this.getAttribute("data-ad-id");
+      if(id) deleteAd(id);
+    };
+  });
+}
+
+window.addAd = async function(){
+  var typeEl = $("adType");
+  var contentEl = $("adContent");
+  var btn = $("addAdBtn");
+  var type = (typeEl && typeEl.value) ? typeEl.value : "text";
+  var content = (contentEl.value || "").trim();
+
+  if(!content){ toast("Text ya URL enter karein."); contentEl.focus(); return; }
+
+  if(type === "image" || type === "video" || type === "link"){
+    if(content.indexOf("http://") !== 0 && content.indexOf("https://") !== 0){
+      toast("Full URL lagao — https:// se start.");
+      contentEl.focus();
+      return;
+    }
+  }
+
+  if(type === "text" && (content.indexOf("http://") === 0 || content.indexOf("https://") === 0)){
+    var lower = content.toLowerCase();
+    if(lower.indexOf("youtube.com") !== -1 || lower.indexOf("youtu.be") !== -1) type = "video";
+    else if(lower.indexOf("instagram.com") !== -1 || lower.indexOf("facebook.com") !== -1 || lower.indexOf("fb.com") !== -1) type = "link";
+    else if(/\.(mp4|webm|mov)(\?|$)/i.test(content)) type = "video";
+    else if(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(content)) type = "image";
+    else type = "link";
+  }
+
+  btn.disabled = true;
+  btn.textContent = "ADDING...";
+  try{
+    await addDoc(collection(db, "ads"), {
+      type: type,
+      content: content,
+      createdBy: ADMIN_UID,
+      createdByName: ADMIN_NAME || "Admin",
+      createdAt: serverTimestamp()
+    });
+    contentEl.value = "";
+    toast("Ad add ho gaya (Home pe dikhega).");
+  }catch(e){ console.error(e); toast("Ad add nahi hua."); }
+  finally{ btn.disabled = false; btn.textContent = "ADD AD"; }
+};
+
+window.deleteAd = async function(id){
+  if(!id) return;
+  if(!confirm("Yeh ad delete karein?")) return;
+  try{
+    await deleteDoc(doc(db, "ads", id));
+    toast("Ad deleted.");
+  }catch(e){ console.error(e); toast("Delete fail."); }
 };
 
 /* ===== ORDERS + DELETE ===== */
