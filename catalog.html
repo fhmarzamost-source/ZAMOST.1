@@ -75,11 +75,17 @@ header{height:64px;padding:0 4%;display:flex;align-items:center;justify-content:
 .cart-bar{position:fixed;right:18px;bottom:18px;z-index:500}
 .cart-button{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;background:#4da3ff;color:#04101c;font-size:11px;font-weight:900;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 #cartCount{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#07111d;color:#fff;font-size:10px}
-.info-box{margin-top:48px;padding:24px;border:1px solid #293e53;border-radius:16px;background:#081421}
-.info-box h2{font-size:22px}.info-box h2 span{color:#4da3ff}
-.info-box p{margin-top:8px;color:#8194a8;font-size:13px;line-height:1.7}
-footer{padding:32px 6%;background:#03080e;border-top:1px solid #263b50;color:#7d90a4;font-size:12px;flex-shrink:0}
+
+/* Footer now carries the "FHAMAR Collection" info note — stays pinned
+   at the bottom of the page like the rest of the footer. */
+footer{padding:28px 6% 20px;background:#03080e;border-top:1px solid #263b50;color:#7d90a4;font-size:12px;flex-shrink:0}
 footer .brand{font-size:18px;letter-spacing:2px}
+.footer-info{
+  padding:20px;margin-bottom:20px;border:1px solid #293e53;border-radius:16px;background:#081421
+}
+.footer-info h2{font-size:20px;color:#fff}
+.footer-info h2 span{color:#4da3ff}
+.footer-info p{margin-top:8px;color:#8194a8;font-size:12px;line-height:1.7}
 
 @media(max-width:950px){.product-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:750px){.product-grid{grid-template-columns:repeat(2,1fr)}}
@@ -130,11 +136,6 @@ footer .brand{font-size:18px;letter-spacing:2px}
 
   <div id="productGrid" class="product-grid"></div>
   <div id="noResults" class="no-results">No products found. Try another search or category.</div>
-
-  <div class="info-box">
-    <h2>FHAMAR <span>Collection</span></h2>
-    <p>Products shown here are uploaded live from the Team Dashboard (Product Upload). Only active products appear in this catalog.</p>
-  </div>
 </main>
 
 <div class="cart-bar">
@@ -142,6 +143,10 @@ footer .brand{font-size:18px;letter-spacing:2px}
 </div>
 
 <footer>
+  <div class="footer-info">
+    <h2>FHAMAR <span>Collection</span></h2>
+    <p>Products shown here are uploaded live from the Team Dashboard (Product Upload). Only active products appear in this catalog.</p>
+  </div>
   <div class="brand"><span class="blue">FHAMAR</span><span class="silver">.ZAMOST</span></div>
   <p>Premium Digital Catalog • Products • Categories • Shopping</p>
 </footer>
@@ -158,8 +163,7 @@ const CATEGORY_MAP = {
   "earphone":"electronics","earphones":"electronics","charger":"electronics","perfume":"personal",
   "personal":"personal","personal care":"personal","fashion":"fashion"
 };
-
-let products = [];
+  let products = [];
 
 function escapeHtml(value){
   return String(value ?? "").replace(/[&<>"']/g, c => ({
@@ -187,6 +191,7 @@ function loadProducts(liveProducts){
     .map(p => ({
       id: p.id,
       category: normalizeCategory(p.category),
+      subCategory: String(p.category || "").trim(),
       name: p.name || "Product",
       description: p.description || "",
       price: Number(p.price) || 0,
@@ -237,15 +242,18 @@ function renderProducts(){
   noResults.style.display = "none";
 
   grid.innerHTML = filtered.map(p => {
-const imgHtml = p.image
-  ? `<img src="\( {escapeHtml(p.image)}" alt=" \){escapeHtml(p.name)}" onerror="this.remove()">`
-  : "";/* no demo emoji / no fake photo */
+    /* FIXED: this was a broken template literal before (\( {..} \){..})
+       so <img src="..."> never got a real URL and every image failed
+       silently. Now it correctly builds a valid <img> tag. */
+    const imgHtml = p.image
+      ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onerror="this.remove()">`
+      : ""; /* no demo emoji / no fake photo */
 
     return `
     <article class="product">
       <div class="product-image">${imgHtml}</div>
       <div class="product-info">
-        <span class="product-category">${escapeHtml(p.category.toUpperCase())}</span>
+        <span class="product-category">${escapeHtml((p.subCategory || p.category).toUpperCase())}</span>
         <h3>${escapeHtml(p.name)}</h3>
         <p class="product-description">${escapeHtml(p.description)}</p>
         <div class="product-bottom">
