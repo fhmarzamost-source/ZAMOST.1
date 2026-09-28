@@ -257,8 +257,7 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
         </p>
       </div>
     </section>
-
-    <section id="team" class="section">
+     <section id="team" class="section">
       <div class="section-header"><h2>Team Applications & Members</h2></div>
       <div class="panel">
         <h3 style="font-size:14px;margin-bottom:10px">⏳ Pending Applications</h3>
@@ -273,7 +272,7 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>MEMBER</th><th>MOBILE</th><th>EMAIL</th><th>STATE</th><th>STATUS</th><th>ACTION</th></tr></thead>
+            <thead><tr><th>MEMBER</th><th>MOBILE</th><th>EMAIL</th><th>LOCATION</th><th>STATUS</th><th>ACTION</th></tr></thead>
             <tbody id="memberTable"></tbody>
           </table>
         </div>
@@ -344,7 +343,8 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
         <div id="voteResults" class="vote-result"></div>
       </div>
     </section>
-      <section id="payments" class="section">
+
+    <section id="payments" class="section">
       <div class="section-header"><h2>Payment Settings</h2></div>
       <div class="panel">
         <div class="payment-warning"><b>RAZORPAY SECURITY</b><br>Key Secret frontend mein mat rakho. Sirf public Key ID.</div>
@@ -634,8 +634,9 @@ window.renderMembers = function(){
     return;
   }
   table.innerHTML = rows.map(function(m){
+    var location = m.city ? (m.city + ", " + (m.state||"")) : (m.state || "—");
     return "<tr><td><strong>" + esc(m.name) + "</strong></td><td>" + esc(m.mobile||"—") +
-      "</td><td>" + esc(m.email||"—") + "</td><td>" + esc(m.state||"—") +
+      "</td><td>" + esc(m.email||"—") + "</td><td>" + esc(location) +
       "</td><td><span class=\"status " + statusClass(m.status) + "\">" + esc(String(m.status||"").toUpperCase()) +
       "</span></td><td>" +
       "<button type=\"button\" class=\"action " + (m.adminAccess ? "admin-on" : "") + "\" data-admin=\"" + esc(m.id) + "\">" +
@@ -678,7 +679,8 @@ window.removeMember = async function(uid){
     toast("Removed.");
   }catch(e){ console.error(e); toast("Failed."); }
 };
-  /* ===== ADS (same feature as Team Dashboard, now also here) ===== */
+
+/* ===== ADS (same feature as Team Dashboard, now also here) ===== */
 function initAdsListener(){
   try{
     if(adsUnsubscribe) adsUnsubscribe();
