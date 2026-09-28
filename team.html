@@ -300,6 +300,7 @@ footer{padding:28px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
       <select id="orderStatusFilter" class="select" onchange="renderOrders()">
         <option value="all">All Status</option>
         <option value="Confirmed">Confirmed</option>
+        <option value="ORDER PLACED">Order Placed</option>
         <option value="Packaging">Packaging</option>
         <option value="Ready to Ship">Ready to Ship</option>
         <option value="Shipped">Shipped</option>
@@ -323,12 +324,7 @@ footer{padding:28px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
     <div class="partner-box">
       <h3>Select / Add Delivery Partner</h3>
       <div class="partner-row">
-        <select id="deliveryPartner">
-          <option value="">Select Partner</option>
-          <option>FZ Delivery Network</option>
-          <option>Local Delivery Partner</option>
-          <option>Professional Courier Partner</option>
-        </select>
+        <select id="deliveryPartner"><option value="">Select Partner</option></select>
         <button type="button" onclick="assignDelivery()">ASSIGN</button>
       </div>
       <div class="partner-row" style="margin-top:10px">
@@ -376,12 +372,14 @@ import {
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-let TEAM_STATE = "";
+  let TEAM_STATE = "";
 let TEAM_MEMBER_ID = "";
 let currentUserName = "";
 let orders = [];
 let adsUnsubscribe = null;
+let statePartners = [];
+let partnersUnsubscribe = null;
+let assignmentUnsubscribe = null;
 
 function isApprovedTeam(data){
   const role = String(data?.role || "").toLowerCase().replace(/[\s-]/g,"_");
@@ -431,7 +429,7 @@ onAuthStateChanged(auth, async (user) => {
   initRealtimeOrders();
   loadTeamMembers();
   initAdsListener();
-  loadSavedDelivery();
+  initStateDeliveryPartners();
 });
 
 function initRealtimeOrders(){
@@ -469,6 +467,7 @@ async function loadTeamMembers(){
         name: d.name || "Team Member",
         mobile: d.mobile || "—",
         email: d.email || "—",
+        city: d.city || "",
         state: d.state || "—",
         isMe: docSnap.id === TEAM_MEMBER_ID
       });
@@ -479,12 +478,13 @@ async function loadTeamMembers(){
       return;
     }
     empty.style.display = "none";
-    list.innerHTML = members.map(m =>
-      '<article class="member-card"><div class="member-card-top"><h3>' +
+    list.innerHTML = members.map(m => {
+      var location = m.city ? (m.city + ", " + m.state) : m.state;
+      return '<article class="member-card"><div class="member-card-top"><h3>' +
       escapeHTML(m.name) + (m.isMe ? " (You)" : "") +
-      '</h3><span class="member-status">' + escapeHTML(m.state) +
-      '</span></div><p>Mobile: ' + escapeHTML(m.mobile) + '<br>Email: ' + escapeHTML(m.email) + '</p></article>'
-    ).join("");
+      '</h3><span class="member-status">' + escapeHTML(location) +
+      '</span></div><p>Mobile: ' + escapeHTML(m.mobile) + '<br>Email: ' + escapeHTML(m.email) + '</p></article>';
+    }).join("");
   }catch(e){
     list.innerHTML = "";
     empty.style.display = "block";
@@ -515,7 +515,8 @@ async function loadTeamMembers(){
     });
   }catch(e){ console.error(e); }
 }
-  function renderAdsList(ads){
+
+function renderAdsList(ads){
   var list = document.getElementById("adsList");
   var empty = document.getElementById("adsEmpty");
 
@@ -643,7 +644,7 @@ window.setOrderStatus = async function(id, status){
 window.advanceOrder = function(id){
   const order = orders.find(o => o.id === id);
   if(!order) return;
-  const flow = ["Confirmed","Packaging","Ready to Ship","Shipped","Out for Delivery","Delivered"];
+  const flow = ["Confirmed","ORDER PLACED","Packaging","Ready to Ship","Shipped","Out for Delivery","Delivered"];
   const i = flow.indexOf(order.status);
   if(i < 0 || i === flow.length - 1){ showToast("Order already completed."); return; }
   setOrderStatus(id, flow[i+1]);
@@ -652,7 +653,8 @@ window.advanceOrder = function(id){
 function nextAction(order){
   const id = escapeHTML(order.id);
   const map = {
-    "Confirmed": '<button class="action primary" onclick="setOrderStatus(\''+id+'\',\'Packaging\')">START PACKAGING</button>',
+    "Confirmed": '<button class="action primary" onclick="setOrderStatus(\''+id+'\',\'ORDER PLACED\')">MARK ORDER PLACED</button>',
+    "ORDER PLACED": '<button class="action primary" onclick="setOrderStatus(\''+id+'\',\'Packaging\')">START PACKAGING</button>',
     "Packaging": '<button class="action primary" onclick="setOrderStatus(\''+id+'\',\'Ready to Ship\')">READY TO SHIP</button>',
     "Ready to Ship": '<button class="action primary" onclick="setOrderStatus(\''+id+'\',\'Shipped\')">DISPATCH</button>',
     "Shipped": '<button class="action primary" onclick="setOrderStatus(\''+id+'\',\'Out for Delivery\')">OUT FOR DELIVERY</button>',
@@ -662,7 +664,7 @@ function nextAction(order){
 }
 
 function progressSteps(status){
-  const all = ["Confirmed","Packaging","Ready to Ship","Shipped","Out for Delivery","Delivered"];
+  const all = ["Confirmed","ORDER PLACED","Packaging","Ready to Ship","Shipped","Out for Delivery","Delivered"];
   const index = all.indexOf(status);
   return all.map((s,i) => '<span class="step '+(i<=index?"done":"")+'">'+(i+1)+'. '+escapeHTML(s)+'</span>').join("");
 }
@@ -786,7 +788,6 @@ window.downloadLabel = async function(orderId, format){
   wrapper.style.top = "0";
   wrapper.innerHTML = buildLabelHTML(order);
   document.body.appendChild(wrapper);
-
   try{
     const canvas = await html2canvas(wrapper.firstElementChild, { scale: 2, backgroundColor: "#ffffff" });
     const fileName = "Label-" + (order.orderNumber || order.id);
@@ -814,36 +815,72 @@ window.downloadLabel = async function(orderId, format){
   }
 };
 
-window.assignDelivery = function(){
-  const partner = document.getElementById("deliveryPartner").value;
+/* ===== DELIVERY — real Firestore data now, scoped to this team member's
+   own state. Partners live in the SAME "deliveryPartners" collection
+   Admin manages, so anything added here shows up in Admin Desk too, and
+   vice versa. The chosen/assigned partner for this state is saved in
+   "deliveryAssignments/{state}" so it's shared in real time with anyone
+   else who opens the state's dashboard (not just this one device). ===== */
+function initStateDeliveryPartners(){
+  try{
+    if(partnersUnsubscribe) partnersUnsubscribe();
+    const q = query(collection(db,"deliveryPartners"), where("area","==",TEAM_STATE));
+    partnersUnsubscribe = onSnapshot(q, (snapshot)=>{
+      statePartners = snapshot.docs.map(d => ({id:d.id, ...d.data()}));
+      renderStatePartnerOptions();
+    }, (e)=>{ console.warn(e); });
+  }catch(e){ console.error(e); }
+
+  try{
+    if(assignmentUnsubscribe) assignmentUnsubscribe();
+    assignmentUnsubscribe = onSnapshot(doc(db,"deliveryAssignments",TEAM_STATE), (snap)=>{
+      if(snap.exists() && snap.data().partnerName){
+        document.getElementById("deliveryResult").innerHTML = "Assigned Partner: <b>" + escapeHTML(snap.data().partnerName) + "</b>";
+      } else {
+        document.getElementById("deliveryResult").textContent = "No delivery partner assigned yet.";
+      }
+    }, (e)=>{ console.warn(e); });
+  }catch(e){ console.error(e); }
+}
+
+function renderStatePartnerOptions(){
+  const sel = document.getElementById("deliveryPartner");
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Select Partner</option>' +
+    statePartners.map(p => '<option value="' + escapeHTML(p.id) + '">' + escapeHTML(p.name) + '</option>').join("");
+  if(current) sel.value = current;
+}
+
+window.assignDelivery = async function(){
+  const sel = document.getElementById("deliveryPartner");
+  const id = sel.value;
+  const partner = statePartners.find(p => p.id === id);
   if(!partner){ showToast("Partner select karein."); return; }
-  const data = { partner, memberId: TEAM_MEMBER_ID, state: TEAM_STATE, assignedAt: new Date().toISOString() };
-  localStorage.setItem("fz_delivery_assignment", JSON.stringify(data));
-  document.getElementById("deliveryResult").innerHTML = "Assigned Partner: <b>" + escapeHTML(partner) + "</b>";
-  showToast("Delivery partner assigned.");
+  try{
+    await setDoc(doc(db,"deliveryAssignments",TEAM_STATE), {
+      partnerId: partner.id,
+      partnerName: partner.name,
+      assignedBy: TEAM_MEMBER_ID,
+      assignedByName: currentUserName || "Team Member",
+      assignedAt: new Date().toISOString()
+    }, { merge: true });
+    showToast("Delivery partner assigned.");
+  }catch(e){ console.error(e); showToast("Assign failed."); }
 };
 
-window.addCustomPartner = function(){
+window.addCustomPartner = async function(){
   const input = document.getElementById("customPartner");
   const val = (input.value || "").trim();
   if(!val){ showToast("Partner name likhein."); return; }
-  const sel = document.getElementById("deliveryPartner");
-  const opt = document.createElement("option");
-  opt.textContent = val;
-  sel.appendChild(opt);
-  sel.value = val;
-  input.value = "";
-  showToast("Partner added to list.");
-};
-
-function loadSavedDelivery(){
   try{
-    const saved = JSON.parse(localStorage.getItem("fz_delivery_assignment") || "null");
-    if(saved && saved.partner){
-      document.getElementById("deliveryResult").innerHTML = "Assigned Partner: <b>" + escapeHTML(saved.partner) + "</b>";
-    }
-  }catch(e){}
-}
+    await addDoc(collection(db,"deliveryPartners"), {
+      name: val, area: TEAM_STATE, phone: "", status: "Active"
+    });
+    input.value = "";
+    showToast("Partner joda gaya — ab Admin Desk mein bhi dikhega.");
+  }catch(e){ console.error(e); showToast("Add failed."); }
+};
 
 function updateStats(){
   const today = new Date().toDateString();
