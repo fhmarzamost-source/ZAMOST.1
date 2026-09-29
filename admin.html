@@ -246,6 +246,9 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
       <div class="stat"><small>ACTIVE ORDERS</small><strong id="orderCount">0</strong></div>
       <div class="stat"><small>PENDING APPS</small><strong id="pendingCount">0</strong></div>
       <div class="stat"><small>DELIVERED</small><strong id="deliveredCount">0</strong></div>
+      <div class="stat" id="noTeamStatCard" style="cursor:pointer;border-color:#6b4a1e;background:#150f07">
+        <small style="color:#e8c48a">⚠ NO TEAM ORDERS</small><strong id="noTeamCount" style="color:#ffb86c">0</strong>
+      </div>
     </div>
 
     <section id="overview" class="section active">
@@ -257,7 +260,8 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
         </p>
       </div>
     </section>
-     <section id="team" class="section">
+
+    <section id="team" class="section">
       <div class="section-header"><h2>Team Applications & Members</h2></div>
       <div class="panel">
         <h3 style="font-size:14px;margin-bottom:10px">⏳ Pending Applications</h3>
@@ -282,7 +286,10 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
     <section id="orders" class="section">
       <div class="section-header">
         <h2>State-wise Orders</h2>
-        <select id="orderStateFilter" class="select" onchange="renderOrders()"><option value="all">All States</option></select>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="orderStateFilter" class="select" onchange="renderOrders()"><option value="all">All States</option></select>
+          <button type="button" class="action" id="noTeamOnlyBtn" onclick="toggleNoTeamOnly()">⚠ SHOW NO-TEAM ONLY</button>
+        </div>
       </div>
       <div id="noTeamBanner" class="noteam-banner" style="display:none"></div>
       <div id="orderGrid" class="order-grid"></div>
@@ -310,9 +317,8 @@ footer{padding:24px 5%;background:#03080e;border-top:1px solid #263b50;color:#7d
         <br>
         <button type="button" class="primary-btn" onclick="assignPartner()">ASSIGN PARTNER</button>
       </div>
-    </section>
-
-    <section id="ads" class="section">
+        </section>
+          <section id="ads" class="section">
       <div class="section-header"><h2>Manage Home Page Ads</h2></div>
       <div class="panel">
         <div class="api-note" style="margin-top:0;margin-bottom:14px">
@@ -510,6 +516,7 @@ function updateStats(){
   if($("orderCount")) $("orderCount").textContent = orders.filter(function(o){ return o.status !== "Delivered"; }).length;
   if($("pendingCount")) $("pendingCount").textContent = pendingApplications.length;
   if($("deliveredCount")) $("deliveredCount").textContent = orders.filter(function(o){ return o.status === "Delivered"; }).length;
+  if($("noTeamCount")) $("noTeamCount").textContent = orders.filter(function(o){ return !hasTeamInState(o.state); }).length;
 }
 
 function rebuildStatesWithTeam(){
@@ -635,16 +642,19 @@ window.renderMembers = function(){
   }
   table.innerHTML = rows.map(function(m){
     var location = m.city ? (m.city + ", " + (m.state||"")) : (m.state || "—");
-    return "<tr><td><strong>" + esc(m.name) + "</strong></td><td>" + esc(m.mobile||"—") +
+    var isSelf = (m.id === ADMIN_UID);
+    var nameCell = esc(m.name || "(no name set)") + (isSelf ? " <span style=\"color:#4da3ff;font-weight:normal\">(You)</span>" : "");
+    var actions = isSelf
+      ? "<span style=\"color:#71869c;font-size:9px\">This is your own account — actions hidden to prevent self-lockout.</span>"
+      : "<button type=\"button\" class=\"action " + (m.adminAccess ? "admin-on" : "") + "\" data-admin=\"" + esc(m.id) + "\">" +
+        (m.adminAccess ? "REVOKE ADMIN" : "MAKE ADMIN") + "</button> " +
+        "<button type=\"button\" class=\"action\" data-status=\"" + esc(m.id) + "\">" +
+        (m.status === "suspended" ? "REACTIVATE" : "SUSPEND") + "</button> " +
+        "<button type=\"button\" class=\"action delete\" data-remove=\"" + esc(m.id) + "\">REMOVE</button>";
+    return "<tr><td><strong>" + nameCell + "</strong></td><td>" + esc(m.mobile||"—") +
       "</td><td>" + esc(m.email||"—") + "</td><td>" + esc(location) +
       "</td><td><span class=\"status " + statusClass(m.status) + "\">" + esc(String(m.status||"").toUpperCase()) +
-      "</span></td><td>" +
-      "<button type=\"button\" class=\"action " + (m.adminAccess ? "admin-on" : "") + "\" data-admin=\"" + esc(m.id) + "\">" +
-      (m.adminAccess ? "REVOKE ADMIN" : "MAKE ADMIN") + "</button> " +
-      "<button type=\"button\" class=\"action\" data-status=\"" + esc(m.id) + "\">" +
-      (m.status === "suspended" ? "REACTIVATE" : "SUSPEND") + "</button> " +
-      "<button type=\"button\" class=\"action delete\" data-remove=\"" + esc(m.id) + "\">REMOVE</button>" +
-      "</td></tr>";
+      "</span></td><td>" + actions + "</td></tr>";
   }).join("");
   table.querySelectorAll("[data-admin]").forEach(function(b){ b.onclick = function(){ toggleAdminAccess(b.getAttribute("data-admin")); }; });
   table.querySelectorAll("[data-status]").forEach(function(b){ b.onclick = function(){ toggleMemberStatus(b.getAttribute("data-status")); }; });
@@ -759,7 +769,6 @@ window.addAd = async function(){
       return;
     }
   }
-
   if(type === "text" && (content.indexOf("http://") === 0 || content.indexOf("https://") === 0)){
     var lower = content.toLowerCase();
     if(lower.indexOf("youtube.com") !== -1 || lower.indexOf("youtu.be") !== -1) type = "video";
@@ -795,20 +804,55 @@ window.deleteAd = async function(id){
 };
 
 /* ===== ORDERS + DELETE ===== */
+var knownNoTeamOrderIds = null; // null = first load, don't alert on initial batch
 function listenOrders(){
   try{
     onSnapshot(collection(db, "orders"), function(snapshot){
       orders = snapshot.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+
+      var currentNoTeamIds = orders.filter(function(o){ return !hasTeamInState(o.state); }).map(function(o){ return o.id; });
+      if(knownNoTeamOrderIds !== null){
+        var newOnes = currentNoTeamIds.filter(function(id){ return knownNoTeamOrderIds.indexOf(id) === -1; });
+        if(newOnes.length){
+          var first = orders.find(function(o){ return o.id === newOnes[0]; });
+          toast("⚠ New order in a NO-TEAM state (" + esc((first && first.state) || "") + ") needs Admin to handle it.");
+        }
+      }
+      knownNoTeamOrderIds = currentNoTeamIds;
+
       renderOrders();
       updateStats();
     }, function(e){ console.warn(e); });
   }catch(e){ console.error(e); }
 }
 
+var noTeamOnlyFilter = false;
+window.toggleNoTeamOnly = function(){
+  noTeamOnlyFilter = !noTeamOnlyFilter;
+  var btn = $("noTeamOnlyBtn");
+  if(btn){
+    btn.classList.toggle("delete", noTeamOnlyFilter);
+    btn.textContent = noTeamOnlyFilter ? "✕ SHOWING NO-TEAM ONLY" : "⚠ SHOW NO-TEAM ONLY";
+  }
+  renderOrders();
+};
+
+var noTeamCard = $("noTeamStatCard");
+if(noTeamCard){
+  noTeamCard.addEventListener("click", function(){
+    document.querySelectorAll(".menu-btn[data-section]").forEach(function(b){
+      if(b.getAttribute("data-section") === "orders") b.click();
+    });
+    if(!noTeamOnlyFilter) window.toggleNoTeamOnly();
+    else renderOrders();
+  });
+}
+
 window.renderOrders = function(){
   var stateEl = $("orderStateFilter");
   var state = stateEl ? stateEl.value : "all";
   var list = orders.filter(function(o){ return state === "all" || o.state === state; });
+  if(noTeamOnlyFilter) list = list.filter(function(o){ return !hasTeamInState(o.state); });
   var grid = $("orderGrid");
   var empty = $("orderEmpty");
   var banner = $("noTeamBanner");
@@ -821,7 +865,7 @@ window.renderOrders = function(){
       noTeamOrders.forEach(function(o){ if(o.state && states.indexOf(o.state) === -1) states.push(o.state); });
       banner.style.display = "block";
       banner.innerHTML = "<b>⚠ No Team States:</b> " + esc(states.join(", ")) +
-        " — " + noTeamOrders.length + " order(s). Admin handle / delete kar sakta hai.";
+        " — " + noTeamOrders.length + " order(s). In sabko Admin ko khud handle karna hai.";
     } else {
       banner.style.display = "none";
     }
@@ -829,7 +873,10 @@ window.renderOrders = function(){
 
   if(!list.length){
     grid.innerHTML = "";
-    if(empty) empty.style.display = "block";
+    if(empty){
+      empty.style.display = "block";
+      empty.textContent = noTeamOnlyFilter ? "Koi no-team order nahi hai — sab states covered hain." : "No orders found.";
+    }
     return;
   }
   if(empty) empty.style.display = "none";
